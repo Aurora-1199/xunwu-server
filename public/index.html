@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f6f6">
+  <title>寻物有声 · 校园失物招领</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/item-info.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/photos.js?v=2" defer></script>
+  <script src="js/details.js" defer></script>
+  <script src="js/notifications.js" defer></script>
+</head>
+
+<body>
+  <!-- 图标在这里统一定义，不需要下载图片 -->
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg"
+       aria-hidden="true">
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6.5"/>
+      <path d="m16 16 5 5"/>
+    </symbol>
+
+    <symbol id="icon-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </symbol>
+
+    <symbol id="icon-box" viewBox="0 0 24 24">
+      <path d="m12 3 9 5-9 5-9-5 9-5Z"/>
+      <path d="M3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5"/>
+    </symbol>
+
+    <symbol id="icon-card" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <circle cx="8" cy="11" r="2"/>
+      <path d="M5.5 16c.5-2 4.5-2 5 0M14 10h4M14 14h4"/>
+    </symbol>
+
+    <symbol id="icon-cup" viewBox="0 0 24 24">
+      <path d="M7 7h10l-1 14H8L7 7ZM9 3h6M12 3v4"/>
+      <path d="M17 9h1a3 3 0 0 1 0 6h-1"/>
+    </symbol>
+
+    <symbol id="icon-umbrella" viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 0 1 18 0H3ZM12 3V2"/>
+      <path d="M12 12v7a2 2 0 0 0 4 0"/>
+      <path d="M8 12c0-5 2-9 4-9s4 4 4 9"/>
+    </symbol>
+
+    <symbol id="icon-pin" viewBox="0 0 24 24">
+      <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/>
+      <circle cx="12" cy="10" r="2.5"/>
+    </symbol>
+  </svg>
+
+  <header class="site-header">
+    <nav class="container navigation" aria-label="主导航">
+      <a class="brand" href="#home" aria-label="寻物有声首页">
+        <span class="brand-mark" aria-hidden="true">寻</span>
+        <span>寻物有声</span>
+      </a>
+
+      <div class="nav-links">
+        <a class="nav-current" href="#home">首页</a>
+        <a href="#square">失物广场</a>
+        <a href="#about">关于项目</a>
+      </div>
+
+      <div class="auth-controls">
+  <button class="login-button" id="open-auth" type="button">
+    登录 / 注册
+  </button>
+
+  <div class="user-info" id="user-info" hidden>
+    <span class="user-name" id="user-name"></span>
+    <button class="message-button" id="notifications-button"
+            type="button" hidden>
+      消息
+      <span class="message-count" id="notification-count" hidden>0</span>
+    </button>
+    
+    <button class="logout-button" id="logout-button" type="button">
+      退出
+    </button>
+  </div>
+</div>
+    </nav>
+  </header>
+
+  <main class="container" id="home">
+    <section class="welcome" aria-labelledby="welcome-title">
+      <p class="eyebrow">CAMPUS LOST & FOUND</p>
+      <h1 id="welcome-title">找回物品，也找回安心。</h1>
+      <p class="welcome-description">
+        丢了东西，来这里找找。捡到物品，让它早点回家。
+      </p>
+    </section>
+
+    <!-- 两个主要入口：整张卡片都可以点击 -->
+    <section class="entry-grid" aria-label="选择登记类型">
+      <button class="entry-card entry-dark"
+              type="button" data-kind="lost">
+        <span class="entry-top">
+          <span class="entry-number">01 / 寻物登记</span>
+          <svg class="entry-icon" aria-hidden="true">
+            <use href="#icon-search"></use>
+          </svg>
+        </span>
+
+        <span class="entry-title">我丢东西了</span>
+
+        <span class="entry-bottom">
+          <span>登记遗失信息，寻找物品线索</span>
+          <span class="entry-arrow">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow"></use>
+            </svg>
+          </span>
+        </span>
+      </button>
+
+      <button class="entry-card entry-light"
+              type="button" data-kind="found">
+        <span class="entry-top">
+          <span class="entry-number">02 / 招领登记</span>
+          <svg class="entry-icon" aria-hidden="true">
+            <use href="#icon-box"></use>
+          </svg>
+        </span>
+
+        <span class="entry-title">我捡到东西了</span>
+
+        <span class="entry-bottom">
+          <span>留下拾获线索，帮物品找到主人</span>
+          <span class="entry-arrow">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-arrow"></use>
+            </svg>
+          </span>
+        </span>
+      </button>
+    </section>
+
+    <p class="entry-note">
+      文字和裁剪后的照片保存在本机数据库。
+    </p>
+
+    <section class="square section" id="square"
+             aria-labelledby="square-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">INFORMATION BOARD</p>
+          <h2 id="square-title">校园失物广场</h2>
+        </div>
+        <span class="demo-label">本机测试数据</span>
+      </div>
+
+      <form class="search-form" id="search-form" role="search">
+        <svg class="icon search-icon" aria-hidden="true">
+          <use href="#icon-search"></use>
+        </svg>
+
+        <label class="visually-hidden" for="search-input">
+          搜索物品名称或地点
+        </label>
+
+        <input id="search-input" type="search"
+               placeholder="搜索物品名称、遗失或拾获地点"
+               autocomplete="off">
+
+        <button class="search-button" type="submit">搜索</button>
+      </form>
+
+      <div class="list-toolbar">
+        <div class="filters" role="group" aria-label="筛选信息类型">
+          <button class="filter-button active" type="button"
+                  data-filter="all" aria-pressed="true">
+            全部信息
+          </button>
+          <button class="filter-button" type="button"
+                  data-filter="lost" aria-pressed="false">
+            寻物启事
+          </button>
+          <button class="filter-button" type="button"
+                  data-filter="found" aria-pressed="false">
+            拾获招领
+          </button>
+          <button class="filter-button" type="button"
+                  data-filter="mine" aria-pressed="false">
+             我的发布
+          </button>
+        </div>
+
+        <p class="result-count" id="result-count" role="status"></p>
+      </div>
+
+      <div class="item-grid" id="item-list"></div>
+
+      <div class="pagination" id="pagination" hidden>
+        <button id="previous-page" type="button">上一页</button>
+        <span id="page-information"></span>
+        <button id="next-page" type="button">下一页</button>
+      </div>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <p class="empty-title">没有找到相关信息</p>
+        <p>换个关键词，或切换上方的信息类型。</p>
+      </div>
+
+      <p class="entry-note">
+        文字和裁剪后的照片保存在本机数据库。
+      </p>
+
+      <p class="feedback" id="feedback" role="status"></p>
+    </section>
+
+    <section class="about section" id="about"
+             aria-labelledby="about-title">
+      <div>
+        <p class="eyebrow">ABOUT THE PROJECT</p>
+        <h2 id="about-title">让校园互助，更近一步。</h2>
+      </div>
+
+      <div class="about-content">
+        <p>
+          《寻物有声》是校园智能失物招领项目，
+          希望让遗失信息和拾获线索更容易被看见。
+        </p>
+        <p>
+          账号、物品、照片、认领线索和完成状态均保存在本机数据库。
+          当前为项目本机测试版，暂未接入真实 AI。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <span>寻物有声</span>
+    <span>校园失物招领 · 学习演示</span>
+  </footer>
+
+  <!-- 登记弹窗 -->
+  <dialog id="entry-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-header">
+      <div>
+        <p class="eyebrow">LOCAL DEMO</p>
+        <h2 id="dialog-title">演示登记</h2>
+      </div>
+
+      <button class="close-button" id="close-dialog"
+              type="button" aria-label="关闭弹窗">×</button>
+    </div>
+
+    <p class="dialog-description">
+      请填写项目测试信息。提交后，文字和裁剪后的照片
+      会保存到本机数据库。
+    </p>
+
+    <form class="entry-form" id="entry-form">
+      <label for="item-name">物品名称</label>
+      <input id="item-name" type="text" maxlength="30"
+             placeholder="例如：黑色保温杯" required>
+
+      <label for="item-place">遗失或拾获地点</label>
+      <input id="item-place" type="text" maxlength="50"
+             placeholder="例如：图书馆二楼" required>
+
+      <label for="item-category">物品类别</label>
+
+      <select id="item-category" name="category" required>
+        <option value="" selected disabled>请选择物品类别</option>
+        <option value="card">证件卡片</option>
+        <option value="electronics">电子数码</option>
+        <option value="daily">生活用品</option>
+        <option value="study">学习用品</option>
+        <option value="clothing">服饰配件</option>
+        <option value="other">其他</option>
+      </select>
+
+      <label id="item-event-time-label" for="item-event-time">
+         遗失／拾获时间（选填）
+      </label>
+
+      <input
+        id="item-event-time"
+        name="eventTime"
+        type="datetime-local"
+      >
+
+      <p class="field-help">
+        填写遗失或拾获的时间，不确定可以留空。
+      </p>
+      
+       <label for="item-description">物品特征（选填）</label>
+      <textarea id="item-description" rows="3" maxlength="120"
+                placeholder="例如：杯盖有一条灰色挂绳"></textarea>
+<fieldset class="photo-field">
+  <legend>物品照片（选填）</legend>
+
+  <div class="photo-actions">
+    <button class="photo-button" id="take-photo" type="button">
+      拍照
+    </button>
+
+    <button class="photo-button" id="choose-photo" type="button">
+      选择照片
+    </button>
+  </div>
+
+  <!-- 手机拍照入口 -->
+  <input id="camera-input" type="file"
+         accept="image/*" capture="environment" hidden>
+
+  <!-- 相册或本地文件入口 -->
+  <input id="album-input" type="file"
+         accept="image/*" hidden>
+
+  <p class="photo-help">
+    每次选择一张，原图最大 10MB。裁剪后随物品一起保存。
+  </p>
+
+  <div class="photo-preview-area" id="photo-preview-area" hidden>
+    <img id="photo-preview" alt="裁剪后的物品照片预览">
+
+    <div class="photo-actions">
+      <button class="photo-button" id="recrop-photo" type="button">
+        重新裁剪
+      </button>
+
+      <button class="photo-button" id="remove-photo" type="button">
+        移除照片
+      </button>
+    </div>
+  </div>
+
+  <p class="photo-message" id="photo-message" role="status"></p>
+  </fieldset>
+  
+  <p class="detail-message" id="entry-message" role="status"></p>
+
+  <button class="submit-button" type="submit">
+    保存并发布
+  </button>
+    </form>
+  </dialog>
+<!-- 登录与注册弹窗 -->
+<dialog id="auth-dialog" aria-labelledby="auth-title">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">XUNWU ACCOUNT</p>
+      <h2 id="auth-title">欢迎回来</h2>
+    </div>
+
+    <button class="close-button" id="close-auth"
+            type="button" aria-label="关闭登录窗口">
+      ×
+    </button>
+  </div>
+
+  <p class="dialog-description">
+  使用本项目账号登录。账号保存在本机后端数据库中，
+  刷新页面不会删除账号。
+  </p>
+
+  <div class="auth-tabs" role="group" aria-label="选择登录或注册">
+    <button class="auth-tab selected" id="login-tab"
+            type="button" aria-pressed="true">
+      登录
+    </button>
+    <button class="auth-tab" id="register-tab"
+            type="button" aria-pressed="false">
+      注册
+    </button>
+  </div>
+
+  <form class="entry-form" id="auth-form">
+    <label for="auth-username">用户名</label>
+    <input
+      id="auth-username"
+      name="username"
+      type="text"
+      autocomplete="username"
+      placeholder="3—20 位字母、数字或下划线"
+      pattern="[A-Za-z0-9_]{3,20}"
+      title="请输入 3—20 位字母、数字或下划线"
+      maxlength="20"
+      required
+    >
+
+    <label for="auth-password">密码</label>
+    <input
+      id="auth-password"
+      name="password"
+      type="password"
+      autocomplete="current-password"
+     placeholder="请输入 8—64 位密码"
+      minlength="8"
+      maxlength="64"
+      required
+    >
+
+    <div class="confirm-field" id="confirm-field" hidden>
+      <label for="auth-confirm">确认密码</label>
+      <input
+        id="auth-confirm"
+        name="confirm-password"
+        type="password"
+        autocomplete="new-password"
+        placeholder="再次输入密码"
+        minlength="8"
+        maxlength="64"
+        disabled
+      >
+    </div>
+
+    <p class="auth-message" id="auth-message" role="status"></p>
+
+    <button class="submit-button" id="auth-submit" type="submit">
+      登录
+    </button>
+  </form>
+
+  <p class="auth-footer">
+     账号服务运行在本机，尚未接入学校统一身份认证。
+  </p>
+</dialog>
+<!-- 独立的照片裁剪窗口 -->
+<dialog class="crop-dialog" id="crop-dialog"
+        aria-labelledby="crop-title">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">PHOTO EDIT</p>
+      <h2 id="crop-title">调整物品照片</h2>
+    </div>
+
+    <button class="close-button" id="close-crop"
+            type="button" aria-label="取消裁剪">
+      ×
+    </button>
+  </div>
+
+  <p class="dialog-description" id="crop-help">
+    拖动照片调整位置，用滑块缩放。框内区域就是保留的画面。
+    也可以聚焦图片后，用方向键移动。
+  </p>
+
+  <div class="crop-stage">
+    <canvas id="crop-canvas" width="800" height="600"
+            tabindex="0" aria-label="照片裁剪区域"
+            aria-describedby="crop-help"></canvas>
+  </div>
+
+  <div class="zoom-control">
+    <label for="crop-zoom">缩放</label>
+    <input id="crop-zoom" type="range"
+           min="1" max="3" step="0.01" value="1">
+    <output id="crop-zoom-value" for="crop-zoom">1.00×</output>
+  </div>
+
+  <div class="crop-footer">
+    <button class="photo-button" id="reset-crop" type="button">
+      重置位置
+    </button>
+    <button class="submit-button" id="confirm-crop" type="button">
+      使用这张照片
+    </button>
+  </div>
+
+  <p class="photo-message" id="crop-message" role="status"></p>
+</dialog>
+<!-- 物品详情弹窗 -->
+<dialog id="detail-dialog" aria-labelledby="detail-title">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">ITEM DETAILS · DEMO</p>
+      <h2 id="detail-title">物品详情</h2>
+    </div>
+
+    <button class="close-button" id="close-detail"
+            type="button" aria-label="关闭物品详情">
+      ×
+    </button>
+  </div>
+
+  <div class="detail-tags">
+    <span class="item-status" id="detail-status"></span>
+    <span class="demo-label">演示数据</span>
+  </div>
+
+  <div class="detail-picture">
+    <img id="detail-photo" alt="" hidden>
+
+    <svg class="item-icon" id="detail-placeholder"
+         aria-hidden="true">
+      <use id="detail-icon" href="#icon-box"></use>
+    </svg>
+  </div>
+
+  <dl class="detail-information">
+    <div>
+      <dt>物品类别</dt>
+      <dd id="detail-category">未分类</dd>
+    </div>
+
+    <div>
+      <dt id="detail-event-time-label">遗失／拾获时间</dt>
+      <dd id="detail-event-time">未填写</dd>
+    </div>
+    <div>
+      <dt>相关地点</dt>
+      <dd id="detail-place"></dd>
+    </div>
+    <div>
+      <dt>物品描述</dt>
+      <dd id="detail-description"></dd>
+    </div>
+  </dl>
+
+  <p class="detail-notice">
+    提交内容保存在本机数据库，仅向物品发布者和提交者本人展示。
+    提交认领说明不代表认领成功，物品状态仍由发布者确认。
+  </p>
+
+  <button class="submit-button detail-action"
+          id="detail-action" type="button">
+    我要认领
+  </button>
+
+  <!-- 点击认领或提供线索后，显示此表单 -->
+  <form class="entry-form" id="detail-response-form" hidden>
+    <label id="detail-response-label" for="detail-response">
+      请描述认领依据
+    </label>
+
+    <textarea
+      id="detail-response"
+      rows="4"
+      minlength="6"
+      maxlength="300"
+      placeholder="请至少填写 6 个字"
+      required
+    ></textarea>
+
+    <div class="detail-form-actions">
+      <button class="detail-cancel" id="cancel-response"
+              type="button">
+        取消填写
+      </button>
+
+      <button class="submit-button" type="submit">
+        提交演示信息
+      </button>
+    </div>
+  </form>
+
+  <p class="detail-message" id="detail-message" role="status"></p>
+
+  <section class="detail-history" id="detail-history" hidden
+           aria-labelledby="detail-history-title">
+    <h3 id="detail-history-title">提交记录</h3>
+    <ul id="detail-records"></ul>
+  </section>
+</dialog>
+<dialog id="notification-dialog"
+        aria-labelledby="notification-title">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">MESSAGE CENTER</p>
+      <h2 id="notification-title">收到的消息</h2>
+    </div>
+
+    <button class="close-button" id="close-notifications"
+            type="button" aria-label="关闭消息">
+      ×
+    </button>
+  </div>
+
+  <p class="dialog-description">
+    展示你发布的物品收到的认领说明和线索。
+    每次最多显示 50 条，未读优先。
+  </p>
+
+  <p id="notification-message" class="detail-message"
+     role="status"></p>
+
+  <ul class="notification-list" id="notification-list"></ul>
+</dialog>
+</body>
+</html>

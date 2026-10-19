@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻物有声 · 物品接口测试</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 18px;
+      color: #222;
+      background: #f5f5f5;
+      font-family: "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+    }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 26px;
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    p,
+    a {
+      font-size: 13px;
+    }
+
+    p {
+      color: #666;
+    }
+
+    a {
+      color: #222;
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    label {
+      margin-top: 6px;
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      color: #222;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 0;
+      font: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 16px;
+      color: #fff;
+      background: #222;
+      border: 0;
+      border-radius: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    pre {
+      max-height: 500px;
+      padding: 16px;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      background: #eee;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>物品发布与查询测试</h1>
+
+    <p>
+      先在账号测试页面登录，再回来发布。
+      当前只测试文字信息，照片上传下一步接入。
+    </p>
+
+    <a href="/test.html">打开注册登录测试页</a>
+
+    <form id="item-form">
+      <label for="kind">信息类型</label>
+      <select id="kind">
+        <option value="lost">我丢东西了</option>
+        <option value="found">我捡到东西了</option>
+      </select>
+
+      <label for="name">物品名称</label>
+      <input id="name" maxlength="30"
+             placeholder="例如：黑色保温杯" required>
+
+      <label for="place">相关地点</label>
+      <input id="place" maxlength="50"
+             placeholder="例如：图书馆二楼" required>
+
+      <label for="description">物品描述</label>
+      <textarea id="description" rows="3" maxlength="120"
+                placeholder="填写测试物品特征"></textarea>
+
+      <button type="submit">发布到数据库</button>
+    </form>
+
+    <div class="actions">
+      <button id="all-items" type="button">查看全部物品</button>
+      <button id="my-items" type="button">查看我的发布</button>
+    </div>
+
+    <p>列表先显示第 1 页，每页最多 20 条。</p>
+
+    <h2>接口返回结果</h2>
+    <pre id="result" role="status">等待操作……</pre>
+  </main>
+
+  <script>
+    const form = document.querySelector("#item-form");
+    const result = document.querySelector("#result");
+    const buttons = document.querySelectorAll("button");
+
+    async function request(url, method, body) {
+      buttons.forEach(function (button) {
+        button.disabled = true;
+      });
+
+      result.textContent = "请求中……";
+
+      try {
+        const options = {
+          method: method,
+          credentials: "same-origin"
+        };
+
+        if (body) {
+          options.headers = {
+            "Content-Type": "application/json"
+          };
+          options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(url, options);
+        const data = await response.json();
+
+        result.textContent =
+          "HTTP 状态：" + response.status + "\n\n" +
+          JSON.stringify(data, null, 2);
+      } catch (error) {
+        result.textContent =
+          "请求失败，请确认后端仍在运行，并通过后端地址访问此页面。";
+      } finally {
+        buttons.forEach(function (button) {
+          button.disabled = false;
+        });
+      }
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      request("/api/items", "POST", {
+        kind: document.querySelector("#kind").value,
+        name: document.querySelector("#name").value,
+        place: document.querySelector("#place").value,
+        description: document.querySelector("#description").value
+      });
+    });
+
+    document.querySelector("#all-items")
+      .addEventListener("click", function () {
+        request("/api/items", "GET");
+      });
+
+    document.querySelector("#my-items")
+      .addEventListener("click", function () {
+        request("/api/items/mine", "GET");
+      });
+  </script>
+</body>
+</html>
